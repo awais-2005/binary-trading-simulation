@@ -97,7 +97,7 @@ function App() {
                 type,
                 investment: investmentAmount,
                 result: type === result ? "won" : "lost",
-                payout: type === result ? investmentAmount*0.85 : -investmentAmount,
+                payout: type === result ? investmentAmount*(profit/100) : -investmentAmount,
                 dateTime: new Date().toLocaleString()
             }, ...prev]);
         }, 3000);
