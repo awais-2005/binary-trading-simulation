@@ -2,242 +2,265 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: Arial, sans-serif;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
+
 body {
-    background-color: #f0f2f5;
+    background-color: #f3f4f6;
 }
+
 main {
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
+
+/* NAVBAR */
 .navbar {
     width: 100%;
     height: 60px;
-    background-color: #4caf50;
+    background-color: #22c55e;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 20px;
     color: white;
-    margin-bottom: 20px;
 }
-h1 {
-    color: #333;
+
+.navbar h1 {
+    font-size: 18px;
 }
+
 .history {
     padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 999px; /* pill shape */
     border: none;
-    border-radius: 5px;
-    background-color: #008cba;
-    color: white;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
     cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
 }
+
+.history:hover {
+    background-color: rgba(255, 255, 255, 0.35);
+}
+
+.history:active {
+    transform: scale(0.96);
+}
+
+/* Mobile tweak */
+@media (max-width: 480px) {
+    .history {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+}
+
+
+/* CARD */
+.card {
+    background: white;
+    width: 95%;
+    max-width: 420px;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
 p {
-    color: #666;
-    margin-bottom: 20px;
-    align-self: center;
     text-align: center;
+    color: #555;
+    margin-bottom: 15px;
 }
+
+/* BALANCE */
 .balance {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    gap: 15px;
+}
+
+.balance h2 {
     font-size: 18px;
-    font-weight: 600;
 }
+
 .edit-balance {
-    padding: 5px 25px;
+    padding: 6px 14px;
+    border-radius: 6px;
     border: none;
-    border-radius: 5px;
-    background-color: #4caf50;
+    background: #22c55e;
     color: white;
     cursor: pointer;
-}
-.edit-balance:hover {
-    background-color: #45a049;
-}
-.set-balance-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.set-balance-content {
-    width: 80%;
-    max-width: 320px;
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    display: flex;
-    gap: 15px;
-}
-.set-balance-content input {
-    padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-.set-balance-content button {
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    background-color: #008cba;
-    color: white;
-    cursor: pointer;
-}
-.set-balance-content button:hover {
-    background-color: #007bb5;
 }
 
-.profit-label {
+/* INPUT GROUP */
+.input-group {
     margin-top: 15px;
-    font-size: 14px;
-    font-weight: 600;
-}
-.investment-label {
-    font-size: 14px;
-    font-weight: 600;
-    position: absolute;
-    bottom: 142px;
 }
 
-.invest-container {
+.input-group label {
+    font-size: 14px;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+}
+
+/* INVEST */
+.invest-row {
     display: flex;
-    align-items: center;
     gap: 10px;
-    position: absolute;
-    bottom: 100px;
+    margin-top: 10px;
 }
 
 .double-up {
-    padding: 10px;
-    border: solid grey 1px;
-    border-radius: 5px;
-}
-
-.profit {
-    margin-top: 2px;
-    padding: 10px;
-    font-size: 16px;
+    padding: 10px 16px;
+    border-radius: 8px;
     border: 1px solid #ccc;
-    border-radius: 5px;
-    width: 200px;
-}
-
-.investment {
-    margin-top: 2px;
-    padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    width: 200px;
-}
-
-.trade-buttons-container {
-    margin-top: 30px;
-    display: flex;
-    gap: 20px;
-    position: absolute;
-    bottom: 40px;
-}
-.trade-button {
-    padding: 15px 40px;
-    border: none;
-    border-radius: 10px;
-    color: white;
-    font-size: 18px;
-    font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    background: #f9fafb;
 }
+
+/* TRADE BUTTONS */
+.trade-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.trade-button {
+    flex: 1;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 10px;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
 .call-button {
-    background-color: #28a745;
+    background: #16a34a;
 }
-.call-button:hover {
-    background-color: #218838;
-}
+
 .put-button {
-    background-color: #dc3545;
+    background: #dc2626;
 }
-.put-button:hover {
-    background-color: #c82333;
-}
-.loading {
-    margin-top: 20px;
-    height: 50px;
-    width: 300px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #ccc;
-    border-radius: 10px;
-    padding: 15px;
-    font-size: 16px;
-    color: #555;
-}
+
+/* RESULT */
+.loading,
 .trade-result {
-    margin-top: 20px;
-    height: 100px;
-    width: 300px;
+    margin-top: 15px;
+    padding: 12px;
+    text-align: center;
+    background: #f1f5f9;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+/* MODAL */
+.set-balance-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #ccc;
-    border-radius: 10px;
-    padding: 15px;
-    font-size: 16px;
-    color: #555;
 }
+
+.set-balance-content {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 300px;
+    display: flex;
+    gap: 10px;
+}
+.set-balance-content {
+    background-color: #ffffff;
+    width: 90%;
+    max-width: 320px;
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    gap: 10px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Input */
+.set-balance-content input {
+    flex: 1;
+    padding: 10px 12px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    outline: none;
+}
+
+.set-balance-content input:focus {
+    border-color: #22c55e;
+}
+
+/* Save Button */
+.save-button {
+    padding: 10px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 8px;
+    border: none;
+    background-color: #22c55e;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.save-button:hover {
+    background-color: #16a34a;
+}
+
+.save-button:active {
+    transform: scale(0.97);
+}
+
+/* HISTORY */
 .trade-history {
     position: fixed;
-    top: 80px;
-    right: 20px;
-    width: 300px;
-    max-height: 400px;
-    overflow-y: auto;
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    top: 70px;
+    right: 10px;
+    width: 90%;
+    max-width: 300px;
+    background: white;
+    border-radius: 12px;
     padding: 15px;
-    z-index: 1000;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
-.trade-history h2 {
-    margin-bottom: 10px;
-    text-align: center;
-}
+
 .trade-item {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    padding: 10px;
     border-bottom: 1px solid #eee;
+    padding: 8px 0;
 }
+
 .trade-item div {
     display: flex;
     justify-content: space-between;
-}
-.trade-item div span {
-    font-weight: 700;
-    font-size: 15px;
-}
-.trade-item span {
-    font-size: 12px;
-    color: #333;
-}
-.no-trades {
-    text-align: center;
-    color: #777;
+    font-weight: 600;
     font-size: 14px;
-    margin-top: 20px;
 }
 
+.trade-item span {
+    font-size: 12px;
+    color: #555;
+}

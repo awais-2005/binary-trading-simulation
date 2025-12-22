@@ -12,133 +12,109 @@ function App() {
     const [showHistory, setShowHistory] = useState(false);
     const [profit, setProfit] = useState(Number(localStorage.getItem('profit')) || 80);
 
-    useEffect(() => {
-        localStorage.setItem('balance', balance.toString());
-    }, [balance]);
-
-    useEffect(() => {
-        localStorage.setItem('investment', investment.toString());
-    }, [investment]);
-
-    useEffect(() => {
-        localStorage.setItem('tradeResult', tradeResult);
-    }, [tradeResult]);
-
-    useEffect(() => {
-        localStorage.setItem('tradeHistory', JSON.stringify(tradeHistory));
-    }, [tradeHistory]);
-
-    useEffect(() => {
-        localStorage.setItem('profit', profit.toString());
-    }, [profit]);
+    useEffect(() => localStorage.setItem('balance', balance), [balance]);
+    useEffect(() => localStorage.setItem('investment', investment), [investment]);
+    useEffect(() => localStorage.setItem('tradeResult', tradeResult), [tradeResult]);
+    useEffect(() => localStorage.setItem('tradeHistory', JSON.stringify(tradeHistory)), [tradeHistory]);
+    useEffect(() => localStorage.setItem('profit', profit), [profit]);
 
     const placeTrade = (type) => {
         if (investment > balance) {
-            setTradeResult("Insufficient balance for this investment.");
+            setTradeResult("Insufficient balance.");
             return;
         }
-        setBalance(balance - investment);
 
+        setBalance(balance - investment);
         showLoading(true);
 
-        calculateTradeOutcome(type, investment, balance);
-    };
-
-    const calculateTradeOutcome = (type, investmentAmount, currentBalance) => {
         setTimeout(() => {
             const result = Math.random() < 0.5 ? "up" : "down";
+
             if (type === result) {
-                setBalance(currentBalance + investmentAmount*(profit/100));
-                setTradeResult(`You won! The market went ${result}. You gained $${investmentAmount*(profit/100)}.`);
+                setBalance(prev => prev + investment + investment * (profit / 100));
+                setTradeResult(`You won! Gained $${investment * (profit / 100)}`);
             } else {
-                setTradeResult(`You lost! The market went ${result}. You lost $${investmentAmount}.`);
+                setTradeResult(`You lost! Lost $${investment}`);
             }
+
             showLoading(false);
+
             setTradeHistory(prev => [{
                 type,
-                investment: investmentAmount,
-                result: type === result ? "won" : "lost",
-                payout: type === result ? investmentAmount*(profit/100) : -investmentAmount,
+                investment,
+                payout: type === result ? investment * (profit / 100) : -investment,
                 dateTime: new Date().toLocaleString()
             }, ...prev]);
-        }, 3000);
-    }
-
-    const renderTradeHistory = () => {
-        return (
-            <div className='trade-history'>
-                <h2>Trade History</h2>
-                {tradeHistory.length > 0 ? tradeHistory.map((trade, index) => (
-                    <div key={index} className='trade-item'>
-                        <div>
-                            <span className='trade-type'>{trade.type == 'up' ? 'Buy' : 'Sell'}</span>
-                            <span className='payout' style={{color: trade.payout > 0 ? 'green' : 'red'}} >${trade.payout > 0 ? trade.payout : -trade.payout}</span>
-                        </div>
-                        <span className='date-time'>{trade.dateTime || 'XX-XX-XXXX XX:XX:XX'}</span>
-                    </div>
-                )) : <p className='no-trades'>No trades made yet.</p>}
-            </div>
-        );
+        }, 1500);
     };
 
-  return (
-    <main>
-        <div className="navbar">
-            <h1>Binary Trading Simulation</h1>
-            <button className='history' onClick={() => setShowHistory(!showHistory)}>{!showHistory ? 'Trade History' : 'Close'}</button>
-        </div>
-        <p>Welcome to the Binary Trading Simulation App!</p>
-        <div className='balance'>
-            <h2>Account Balance: ${balance.toFixed(2)}</h2>
-            <button className='edit-balance' onClick={() => {setShowSetBalance(!showSetBalance)}}>Edit</button>
-        </div>
-
-        <span className='profit-label'>Profit: ${investment*(profit/100)}</span>        
-        <input className="profit"
-            type="number"
-            min={1}
-            max={100}
-            placeholder="Profit Percentage"
-            value={profit}
-            onChange={(e) => setProfit(Number(e.target.value))}
-        />
-
-        {showSetBalance && (
-            <div className='set-balance-content'>
-                <input
-                    type="number"
-                    value={balance}
-                    onChange={(e) => setBalance(Number(e.target.value))}
-                />
-                <button onClick={() => setShowSetBalance(false)}>Save</button>
+    return (
+        <main>
+            <div className="navbar">
+                <h1>Binary Trading Simulator</h1>
+                <button className="history" onClick={() => setShowHistory(!showHistory)}>
+                    {showHistory ? "Close" : "History"}
+                </button>
             </div>
-        )}
 
-        {loading && <div className='loading'>Placing trade...</div>}
-        {tradeResult && !loading && <div className='trade-result'>{tradeResult}</div>}
+            <div className="card">
+                <p>Practice trading with simulated money</p>
 
-        <span className='investment-label'>Investment: ${investment}</span>
-        
-        <div className="invest-container">
-            <input className="investment"
-                type="number"
-                min={1}
-                placeholder="Investment Amount"
-                value={investment}
-                onChange={(e) => setInvestment(Number(e.target.value))}
-            />
-            <button className='double-up' onClick={() => setInvestment(investment*2)} >2x</button>
-        </div>
+                <div className="balance">
+                    <h2>${balance.toFixed(2)}</h2>
+                    <button className="edit-balance" onClick={() => setShowSetBalance(true)}>Edit</button>
+                </div>
 
-        <div className="trade-buttons-container">
-            <button className='trade-button call-button' onClick={() => placeTrade("up")} >Up</button>
-            <button className='trade-button put-button' onClick={() => placeTrade("down")} >Down</button>
-        </div>
+                <div className="input-group">
+                    <label>Profit % (You earn ${investment * (profit / 100)})</label>
+                    <input type="number" value={profit} onChange={e => setProfit(+e.target.value)} />
+                </div>
 
-        {showHistory && renderTradeHistory()}
+                <div className="input-group">
+                    <label>Investment</label>
+                    <div className="invest-row">
+                        <input type="number" value={investment} onChange={e => setInvestment(+e.target.value)} />
+                        <button className="double-up" onClick={() => setInvestment(investment * 2)}>2x</button>
+                    </div>
+                </div>
 
-    </main>
-  )
+                <div className="trade-buttons">
+                    <button className="trade-button call-button" onClick={() => placeTrade("up")}>UP</button>
+                    <button className="trade-button put-button" onClick={() => placeTrade("down")}>DOWN</button>
+                </div>
+
+                {loading && <div className="loading">Placing trade...</div>}
+                {!loading && <div className="trade-result">{tradeResult}</div>}
+            </div>
+
+            {showSetBalance && (
+                <div className="set-balance-modal">
+                    <div className="set-balance-content">
+                        <input type="number" value={balance} onChange={e => setBalance(+e.target.value)} />
+                        <button className='save-button' onClick={() => setShowSetBalance(false)}>Save</button>
+                    </div>
+                </div>
+            )}
+
+            {showHistory && (
+                <div className="trade-history">
+                    <h3>Trade History</h3>
+                    {tradeHistory.length === 0 && <p>No trades yet</p>}
+                    {tradeHistory.map((t, i) => (
+                        <div key={i} className="trade-item">
+                            <div>
+                                <span>{t.type === 'up' ? 'BUY' : 'SELL'}</span>
+                                <span style={{ color: t.payout > 0 ? 'green' : 'red' }}>
+                                    ${Math.abs(t.payout)}
+                                </span>
+                            </div>
+                            <span>{t.dateTime}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </main>
+    );
 }
 
-export default App
+export default App;
