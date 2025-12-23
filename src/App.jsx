@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import './index.css'
 
 function App() {
@@ -11,42 +11,100 @@ function App() {
     const [tradeHistory, setTradeHistory] = useState(JSON.parse(localStorage.getItem('tradeHistory')) || []);
     const [showHistory, setShowHistory] = useState(false);
     const [profit, setProfit] = useState(Number(localStorage.getItem('profit')) || 80);
+    const [autoTrade, setAutoTrade] = useState(false);
+    const [autoTradeInterval, setAutoTradeInterval] = useState(null);
+    const placeTrade = (type) => {
+        if (!canPlaceTrade()) return;
+
+        setBalance(balance - investment);
+        showLoading(true);
+
+        setTimeout(() => {
+            executeTrade(type);
+        }, 1500);
+    };
+    const canPlaceTrade = useCallback(() => {
+        if (investment <= 0) {
+            setTradeResult("Investment must be greater than $0");
+            return false;
+        }
+        if (investment > balance) {
+            setTradeResult("Insufficient balance for this investment");
+            return false;
+        }
+        return true;
+    }, [balance, investment]);
+    
+    const setupThings = useCallback((type, result) => {
+        showLoading(false);
+
+        setTradeHistory(prev => [{
+            type,
+            investment,
+            payout: type === result ? investment * (profit / 100) : -investment,
+            dateTime: new Date().toLocaleString()
+        }, ...prev]);
+    }, [investment, profit]);
+
+    
+    const executeTrade = useCallback((type) => {
+        showLoading(false);
+        setTradeResult("New trade placed...");
+        const result = Math.random() < 0.5 ? "up" : "down";
+        if (type === result) {
+            const gain =  investment + investment * (profit / 100);
+            setBalance(prev => prev + gain);
+            setTradeResult(`You won! Gained $${investment * (profit / 100)}`);
+            setupThings(type, result);
+            return true;
+        } else {
+            setTradeResult(`You lost! Lost $${investment}`);
+            setupThings(type, result);
+            return false
+        }
+
+    }, [investment, profit, setupThings]);
 
     useEffect(() => localStorage.setItem('balance', balance), [balance]);
     useEffect(() => localStorage.setItem('investment', investment), [investment]);
     useEffect(() => localStorage.setItem('tradeResult', tradeResult), [tradeResult]);
     useEffect(() => localStorage.setItem('tradeHistory', JSON.stringify(tradeHistory)), [tradeHistory]);
     useEffect(() => localStorage.setItem('profit', profit), [profit]);
+    useEffect(() => {
 
-    const placeTrade = (type) => {
-        if (investment > balance) {
-            setTradeResult("Insufficient balance.");
-            return;
+        if(autoTrade && !autoTradeInterval) {
+            const interval = setInterval(() => {
+                showLoading(true);
+                if (!canPlaceTrade()) {
+                    clearInterval(interval);
+                    setAutoTrade(false);
+                    setAutoTradeInterval(null);
+                    showLoading(false);
+                    setTradeResult("Auto Trade stopped: cannot place trade");
+                    return;
+                }
+                setBalance(prev => prev - investment);
+                if (executeTrade('up')) {
+                    setInvestment(1);
+                } else {
+                    setInvestment(prev => prev * 2);
+                }
+            }, 2000);
+
+            setAutoTradeInterval(interval);
+        } else if (!autoTrade && autoTradeInterval) {
+            clearInterval(autoTradeInterval);
+            setAutoTradeInterval(null);
         }
 
-        setBalance(balance - investment);
-        showLoading(true);
-
-        setTimeout(() => {
-            const result = Math.random() < 0.5 ? "up" : "down";
-
-            if (type === result) {
-                setBalance(prev => prev + investment + investment * (profit / 100));
-                setTradeResult(`You won! Gained $${investment * (profit / 100)}`);
-            } else {
-                setTradeResult(`You lost! Lost $${investment}`);
+        return () => {
+            if (autoTradeInterval) {
+                console.log('clearing interval on cleanup');
+                clearInterval(autoTradeInterval);
+                setAutoTradeInterval(null);
             }
-
-            showLoading(false);
-
-            setTradeHistory(prev => [{
-                type,
-                investment,
-                payout: type === result ? investment * (profit / 100) : -investment,
-                dateTime: new Date().toLocaleString()
-            }, ...prev]);
-        }, 1500);
-    };
+        };
+    }, [autoTrade, autoTradeInterval, canPlaceTrade, executeTrade, investment]);    
 
     return (
         <main>
@@ -62,7 +120,12 @@ function App() {
 
                 <div className="balance">
                     <h2>${balance.toFixed(2)}</h2>
-                    <button className="edit-balance" onClick={() => setShowSetBalance(true)}>Edit</button>
+                    <div className="buttons-container">
+                        <button className="edit-balance" onClick={() => setShowSetBalance(true)}>Edit</button>
+                        <button className="edit-balance" onClick={() => {
+                            setAutoTrade(!autoTrade);
+                        }} style={{backgroundColor: autoTrade ? 'yellow' : '#f0f0f0', color: autoTrade ? '#fff' : '#333'}}>Auto Trade</button>
+                    </div>
                 </div>
 
                 <div className="input-group">
