@@ -243,6 +243,22 @@ p {
     box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
 
+.clear-history {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+    border: none;
+    background-color: #ef4444;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+.clear-history:hover {
+    background-color: #dc2626;
+}
 .trade-item {
     border-bottom: 1px solid #eee;
     padding: 8px 0;

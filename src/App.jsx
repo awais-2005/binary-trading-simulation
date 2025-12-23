@@ -13,6 +13,7 @@ function App() {
     const [profit, setProfit] = useState(Number(localStorage.getItem('profit')) || 80);
     const [autoTrade, setAutoTrade] = useState(false);
     const [autoTradeInterval, setAutoTradeInterval] = useState(null);
+
     const placeTrade = (type) => {
         if (!canPlaceTrade()) return;
 
@@ -23,6 +24,7 @@ function App() {
             executeTrade(type);
         }, 1500);
     };
+
     const canPlaceTrade = useCallback(() => {
         if (investment <= 0) {
             setTradeResult("Investment must be greater than $0");
@@ -45,7 +47,6 @@ function App() {
             dateTime: new Date().toLocaleString()
         }, ...prev]);
     }, [investment, profit]);
-
     
     const executeTrade = useCallback((type) => {
         showLoading(false);
@@ -106,6 +107,10 @@ function App() {
         };
     }, [autoTrade, autoTradeInterval, canPlaceTrade, executeTrade, investment]);    
 
+    const clearHistory = () => {
+        setTradeHistory([]);
+    };
+
     return (
         <main>
             <div className="navbar">
@@ -162,6 +167,7 @@ function App() {
             {showHistory && (
                 <div className="trade-history">
                     <h3>Trade History</h3>
+                    <button className='clear-history' onClick={clearHistory}>Clear</button>
                     {tradeHistory.length === 0 && <p>No trades yet</p>}
                     {tradeHistory.map((t, i) => (
                         <div key={i} className="trade-item">
