@@ -11,9 +11,11 @@ body {
 
 main {
     min-height: 100vh;
+    width: 100%;  /* ← Use 100% instead */
     display: flex;
     flex-direction: column;
     align-items: center;
+    overflow-x: hidden; /* Add this as extra safety */
 }
 
 /* NAVBAR */
