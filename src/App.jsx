@@ -10,9 +10,12 @@ function App() {
     const [tradeResult, setTradeResult] = useState(localStorage.getItem('tradeResult') || 'Place your trade!');
     const [tradeHistory, setTradeHistory] = useState(JSON.parse(localStorage.getItem('tradeHistory')) || []);
     const [showHistory, setShowHistory] = useState(false);
+    const [tradePerSecond, setTradePerSecond] = useState(5);
     const [profit, setProfit] = useState(Number(localStorage.getItem('profit')) || 80);
     const [autoTrade, setAutoTrade] = useState(false);
     const [autoTradeInterval, setAutoTradeInterval] = useState(null);
+    const [showDetails, setShowDetails] = useState(false);
+    const [savedDetails, setSavedDetails] = useState(JSON.parse(localStorage.getItem('details')) || {biggestTrade: 0, maxLoss: 0, maxProfit: 0, wins: 0, losses: 0, totalInvested: 0, totalProfit: 0, totalLoss: 0});
 
     const placeTrade = (type) => {
         if (!canPlaceTrade()) return;
@@ -71,6 +74,7 @@ function App() {
     useEffect(() => localStorage.setItem('tradeResult', tradeResult), [tradeResult]);
     useEffect(() => localStorage.setItem('tradeHistory', JSON.stringify(tradeHistory)), [tradeHistory]);
     useEffect(() => localStorage.setItem('profit', profit), [profit]);
+    useEffect(() => localStorage.setItem('details', JSON.stringify(savedDetails)), [savedDetails]);
     useEffect(() => {
 
         if(autoTrade && !autoTradeInterval) {
@@ -84,13 +88,23 @@ function App() {
                     setTradeResult("Auto Trade stopped: cannot place trade");
                     return;
                 }
+                const details = {...savedDetails};
                 setBalance(prev => prev - investment);
+                details.totalInvested += investment;
+                details.biggestTrade = Math.max(details.biggestTrade, investment);
                 if (executeTrade('up')) {
+                    details.wins += 1;
+                    details.totalProfit += investment * (profit / 100);
+                    details.maxProfit = Math.max(details.maxProfit, investment * (profit / 100));
                     setInvestment(1);
                 } else {
+                    details.losses += 1;
+                    details.totalLoss += investment;
+                    details.maxLoss = Math.max(details.maxLoss, investment);
                     setInvestment(prev => prev * 2);
                 }
-            }, 2000);
+                setSavedDetails({...details});
+            }, 1000 / tradePerSecond);
 
             setAutoTradeInterval(interval);
         } else if (!autoTrade && autoTradeInterval) {
@@ -105,7 +119,7 @@ function App() {
                 setAutoTradeInterval(null);
             }
         };
-    }, [autoTrade, autoTradeInterval, canPlaceTrade, executeTrade, investment]);    
+    }, [autoTrade, autoTradeInterval, canPlaceTrade, executeTrade, investment, profit, savedDetails, tradePerSecond]);    
 
     const clearHistory = () => {
         setTradeHistory([]);
@@ -121,27 +135,30 @@ function App() {
             </div>
 
             <div className="card">
-                <p>Practice trading with simulated money</p>
-
                 <div className="balance">
                     <h2>${balance.toFixed(2)}</h2>
                     <div className="buttons-container">
                         <button className="edit-balance" onClick={() => setShowSetBalance(true)}>Edit</button>
                         <button className="edit-balance" onClick={() => {
                             setAutoTrade(!autoTrade);
-                        }} style={{backgroundColor: autoTrade ? 'yellow' : '#f0f0f0', color: autoTrade ? '#fff' : '#333'}}>Auto Trade</button>
+                        }} style={{backgroundColor: autoTrade ? '#ffd900ff' : '#f0f0f0', color: autoTrade ? '#fff' : '#333'}}>Auto Trade</button>
                     </div>
                 </div>
 
                 <div className="input-group">
-                    <label>Profit % (You earn ${investment * (profit / 100)})</label>
-                    <input type="number" value={profit} onChange={e => setProfit(+e.target.value)} />
+                    <label>Profit % (You earn ${(investment * (profit / 100).toFixed(2))})</label>
+                    <input type="number" value={profit.toFixed(2)} onChange={e => setProfit(+e.target.value)} />
+                </div>
+
+                <div className="input-group">
+                    <label>Trades Per Second</label>
+                    <input max={20} min={1} type="number" value={tradePerSecond} onChange={e => setTradePerSecond(+e.target.value)} />
                 </div>
 
                 <div className="input-group">
                     <label>Investment</label>
                     <div className="invest-row">
-                        <input type="number" value={investment} onChange={e => setInvestment(+e.target.value)} />
+                        <input type="number" value={investment.toFixed(2)} onChange={e => setInvestment(+e.target.value)} />
                         <button className="double-up" onClick={() => setInvestment(investment * 2)}>2x</button>
                     </div>
                 </div>
@@ -153,6 +170,32 @@ function App() {
 
                 {loading && <div className="loading">Placing trade...</div>}
                 {!loading && <div className="trade-result">{tradeResult}</div>}
+                <button className='show-details-button' onClick={() => setShowDetails(!showDetails)}>{showDetails ? 'Hide Details' : 'Show Details'}</button>
+                {showDetails && (
+                    <div className="details-section">
+                        <button className='dismiss' onClick={() => setShowDetails(false)}>X</button>
+                        <h3>Trading Details</h3>
+                        <p>Biggest Trade: ${savedDetails.biggestTrade.toFixed(2)}</p>
+                        <p>Max Profit: ${savedDetails.maxProfit.toFixed(2)}</p>
+                        <p>Max Loss: ${savedDetails.maxLoss.toFixed(2)}</p>
+                        <p>Total Wins: {savedDetails.wins}</p>
+                        <p>Total Losses: {savedDetails.losses}</p>
+                        <p>Total Invested: ${savedDetails.totalInvested.toFixed(2)}</p>
+                        <p>Total Profit: ${savedDetails.totalProfit.toFixed(2)}</p>
+                        <p>Total Loss: ${savedDetails.totalLoss.toFixed(2)}</p>
+                        <p>Total Gain: $ {(savedDetails.totalProfit - savedDetails.totalLoss).toFixed(2)}</p>
+                        <button className="clear-details" onClick={() => setSavedDetails({
+                            biggestTrade: 0,
+                            maxLoss: 0,
+                            maxProfit: 0,
+                            wins: 0,
+                            losses: 0,
+                            totalInvested: 0,
+                            totalProfit: 0,
+                            totalLoss: 0
+                        })}>Clear</button>
+                    </div>
+                )}
             </div>
 
             {showSetBalance && (
@@ -166,7 +209,10 @@ function App() {
 
             {showHistory && (
                 <div className="trade-history">
-                    <h3>Trade History</h3>
+                    <div className="history-header">
+                        <h3>Trade History</h3>
+                        <span className='total-trade'>{tradeHistory.length}</span>
+                    </div>
                     <button className='clear-history' onClick={clearHistory}>Clear</button>
                     {tradeHistory.length === 0 && <p>No trades yet</p>}
                     {tradeHistory.map((t, i) => (
